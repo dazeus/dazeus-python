@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import socket
+import json
 
 class DaZeus:
     def __init__(self, addr):
@@ -66,11 +67,12 @@ class DaZeus:
         while True:
             (offset, message_len) = self.check_message()
             if message_len is not None:
-                return self.buffer[offset:offset+message_len].decode('utf-8')
+                return json.loads(self.buffer[offset:offset+message_len].decode('utf-8'))
             self.buffer += self.sock.recv(1024)
 
     def write(self, msg):
-        bytemsg = msg.encode('utf-8')
+        bytemsg = json.dumps(msg).encode('utf-8')
+        bytemsg = str(len(bytemsg)).encode('utf-8') + bytemsg
         totalsent = 0
         while totalsent < len(bytemsg):
             sent = self.sock.send(bytemsg[totalsent:])

@@ -3,6 +3,44 @@
 import socket
 import json
 
+class Scope:
+    def __init__(self, network = None, receiver = None, sender = None):
+        self.network = network
+        self.receiver = receiver
+        self.sender = sender
+
+    def is_all(self):
+        return self.network is None and self.receiver is None and self.sender is None
+
+    def to_list(self):
+        scope = []
+
+        if self.network is not None:
+            scope.append(self.network)
+            if self.receiver is not None:
+                scope.append(self.receiver)
+                if self.sender is not None:
+                    scope.append(self.sender)
+
+        return scope
+
+    def to_command_list(self):
+        if self.receiver is not None and self.sender is not None:
+            raise RuntimeError("Cannot use scope with both sender and receiver for subscribing to commands")
+
+        scope = []
+        if self.network is not None:
+            scope.append(self.network)
+
+            if self.receiver is not None:
+                scope.append(False)
+                scope.append(self.receiver)
+
+            if self.sender is not None:
+                scope.append(True)
+                scope.append(self.sender)
+        return scope
+
 class DaZeus:
     def __init__(self, addr, debug = False):
         if ':' not in addr:
@@ -105,17 +143,31 @@ class DaZeus:
         return listener['id']
 
     def subscribe(self, event, handler):
-        return self._add_listener({
+        handle = self._add_listener({
             'event': event,
             'handler': handler
         })
 
-    def subscribe_command(self, command, handler):
-        return self._add_listener({
+        self._write({
+            "do": "subscribe",
+            "params": [event]
+        })
+        self._wait_success_response()
+        return handle
+
+    def subscribe_command(self, command, handler, scope = Scope()):
+        handle = self._add_listener({
             'event': 'command',
             'command': command,
             'handler': handler
         })
+
+        self._write({
+            "do": "command",
+            "params": [command] + scope.to_command_list()
+        })
+        self._wait_success_response()
+        return handle
 
     def unsubscribe(self, id):
         self._listeners = [l for l in self._listeners if l['id'] != id]
@@ -130,6 +182,12 @@ class DaZeus:
                 self._handle_event(msg)
             else:
                 return msg
+
+    def _wait_success_response(self):
+        resp = self._wait_response()
+        if 'error' in resp:
+            raise RuntimeError(resp['error'])
+        return resp
 
     def listen(self):
         while True:

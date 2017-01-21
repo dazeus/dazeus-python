@@ -164,41 +164,51 @@ class DaZeus:
                 raise RuntimeError("Got response to unsent request")
 
     def networks(self):
-        self._write({"get":"networks"})
-        return self._wait_response()
+        self._write({"get": "networks"})
+        return self._wait_success_response()
 
     def channels(self, network):
-        raise NotImplementedError()
+        self._write({"get": "channels", "params": [network]})
+        return self._wait_success_response()
 
     def join(self, network, channel):
-        raise NotImplementedError()
+        self._write({"do": "join", "params": [network, channel]})
+        return self._wait_success_response()
 
     def part(self, network, channel):
-        raise NotImplementedError()
+        self._write({"do": "part", "params": [network, channel]})
+        return self._wait_success_response()
 
     def message(self, network, channel, message):
-        raise NotImplementedError()
+        self._write({"do": "message", "params": [network, channel, message]})
+        return self._wait_success_response()
 
     def action(self, network, channel, message):
-        raise NotImplementedError()
+        self._write({"do": "action", "params": [network, channel, message]})
+        return self._wait_success_response()
 
     def notice(self, network, channel, message):
-        raise NotImplementedError()
+        self._write({"do": "notice", "params": [network, channel, message]})
+        return self._wait_success_response()
 
     def reply(self, network, channel, sender, message, highlight = False, type = 'message'):
         raise NotImplementedError()
 
     def ctcp(self, network, channel, message):
-        raise NotImplementedError()
+        self._write({"do": "ctcp", "params": [network, channel, message]})
+        return self._wait_success_response()
 
     def ctcp_reply(self, network, channel, message):
-        raise NotImplementedError()
+        self._write({"do": "ctcp_rep", "params": [network, channel, message]})
+        return self._wait_success_response()
 
     def nick(self, network):
-        raise NotImplementedError()
+        self._write({"get": "nick", "params": [network]})
+        return self._wait_success_response()
 
-    def get_config(self, name, group = 'plugin'):
-        raise NotImplementedError()
+    def get_config(self, key, group = 'plugin'):
+        self._write({"get": "config", "params": [group, key]})
+        return self._wait_success_response()
 
     def highlight_character(self):
         return self.get_config('highlight', 'core')

@@ -195,7 +195,20 @@ class DaZeus:
         return self._wait_success_response()['success']
 
     def reply(self, network, channel, sender, message, highlight = False, type = 'message'):
-        raise NotImplementedError()
+        if type == 'notice':
+            func = self.notice
+        elif type == 'ctcp':
+            func = self.ctcp_reply
+        else:
+            func = self.message
+
+        nick = self.nick(network)
+        if channel == nick:
+            return func(network, sender, message)
+        else:
+            if highlight:
+                message = sender + ': ' + message
+            return func(network, channel, message)
 
     def ctcp(self, network, channel, message):
         self._write({"do": "ctcp", "params": [network, channel, message]})

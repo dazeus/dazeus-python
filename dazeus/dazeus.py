@@ -139,7 +139,8 @@ class DaZeus:
                (event['event'] == 'COMMAND' and event['params'][3] != l['command']):
                 continue
 
-            l['handler'](event)
+            l['handler'](event, lambda message, highlight = False, type = 'message': \
+                self.reply(event['params'][0], event['params'][2], event['params'][1], message, highlight, type))
 
     def _wait_response(self):
         while True:

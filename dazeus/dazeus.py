@@ -151,8 +151,11 @@ class DaZeus:
 
     def _wait_success_response(self):
         resp = self._wait_response()
-        if 'error' in resp:
-            raise RuntimeError(resp['error'])
+        if not resp['success']:
+            if 'error' in resp:
+                raise RuntimeError(resp['error'])
+            else:
+                raise RuntimeError("An unknown error occurred.")
         return resp
 
     def listen(self):
@@ -213,25 +216,41 @@ class DaZeus:
     def highlight_character(self):
         return self.get_config('highlight', 'core')
 
-    def get_property(self, property, scope):
+    def get_property(self, property, scope = Scope()):
+        if scope.is_all():
+            self._write({"do": "property", "params": ['get', property]})
+        else:
+            self._write({"do": "property", "scope": scope.to_list(), "params": ['get', property]})
+        return self._wait_success_response()
+
+    def set_property(self, property, value, scope = Scope()):
+        if scope.is_all():
+            self._write({"do": "property", "params": ['set', property, value]})
+        else:
+            self._write({"do": "property", "scope": scope.to_list(), "params": ['set', property, value]})
+        return self._wait_success_response()
+
+    def unset_property(self, property, scope = Scope()):
+        if scope.is_all():
+            self._write({"do": "property", "params": ['unset', property]})
+        else:
+            self._write({"do": "property", "scope": scope.to_list(), "params": ['unset', property]})
+        return self._wait_success_response()
+
+    def property_keys(self, prefix = '', scope = Scope()):
+        if scope.is_all():
+            self._write({"do": "property", "params": ['keys', prefix]})
+        else:
+            self._write({"do": "property", "scope": scope.to_list(), "params": ['keys', prefix]})
+        return self._wait_success_response()
+
+    def get_permission(self, permission, scope = Scope(), allow = True):
         raise NotImplementedError()
 
-    def set_property(self, property, value, scope):
+    def set_permission(self, permission, scope = Scope(), allow = True):
         raise NotImplementedError()
 
-    def unset_property(self, property, scope):
-        raise NotImplementedError()
-
-    def property_keys(self, scope):
-        raise NotImplementedError()
-
-    def get_permission(self, permission, scope, allow = True):
-        raise NotImplementedError()
-
-    def set_permission(self, permission, scope, allow = True):
-        raise NotImplementedError()
-
-    def remove_permission(self, permission, scope):
+    def remove_permission(self, permission, scope = Scope()):
         raise NotImplementedError()
 
     def whois(self, network, nick):

@@ -166,3 +166,69 @@ class DaZeus:
     def networks(self):
         self._write({"get":"networks"})
         return self._wait_response()
+
+    def channels(self, network):
+        raise NotImplementedError()
+
+    def join(self, network, channel):
+        raise NotImplementedError()
+
+    def part(self, network, channel):
+        raise NotImplementedError()
+
+    def message(self, network, channel, message):
+        raise NotImplementedError()
+
+    def action(self, network, channel, message):
+        raise NotImplementedError()
+
+    def notice(self, network, channel, message):
+        raise NotImplementedError()
+
+    def reply(self, network, channel, sender, message, highlight = False, type = 'message'):
+        raise NotImplementedError()
+
+    def ctcp(self, network, channel, message):
+        raise NotImplementedError()
+
+    def ctcp_reply(self, network, channel, message):
+        raise NotImplementedError()
+
+    def nick(self, network):
+        raise NotImplementedError()
+
+    def get_config(self, name, group = 'plugin'):
+        raise NotImplementedError()
+
+    def highlight_character(self):
+        return self.get_config('highlight', 'core')
+
+    def get_property(self, property, scope):
+        raise NotImplementedError()
+
+    def set_property(self, property, value, scope):
+        raise NotImplementedError()
+
+    def unset_property(self, property, scope):
+        raise NotImplementedError()
+
+    def property_keys(self, scope):
+        raise NotImplementedError()
+
+    def get_permission(self, permission, scope, allow = True):
+        raise NotImplementedError()
+
+    def set_permission(self, permission, scope, allow = True):
+        raise NotImplementedError()
+
+    def remove_permission(self, permission, scope):
+        raise NotImplementedError()
+
+    def whois(self, network, nick):
+        raise NotImplementedError()
+
+    def names(self, network, channel):
+        raise NotImplementedError()
+
+    def nicknames(self, network, channel):
+        raise NotImplementedError()

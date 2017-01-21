@@ -168,50 +168,50 @@ class DaZeus:
 
     def networks(self):
         self._write({"get": "networks"})
-        return self._wait_success_response()
+        return self._wait_success_response()['networks']
 
     def channels(self, network):
         self._write({"get": "channels", "params": [network]})
-        return self._wait_success_response()
+        return self._wait_success_response()['channels']
 
     def join(self, network, channel):
         self._write({"do": "join", "params": [network, channel]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def part(self, network, channel):
         self._write({"do": "part", "params": [network, channel]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def message(self, network, channel, message):
         self._write({"do": "message", "params": [network, channel, message]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def action(self, network, channel, message):
         self._write({"do": "action", "params": [network, channel, message]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def notice(self, network, channel, message):
         self._write({"do": "notice", "params": [network, channel, message]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def reply(self, network, channel, sender, message, highlight = False, type = 'message'):
         raise NotImplementedError()
 
     def ctcp(self, network, channel, message):
         self._write({"do": "ctcp", "params": [network, channel, message]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def ctcp_reply(self, network, channel, message):
         self._write({"do": "ctcp_rep", "params": [network, channel, message]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def nick(self, network):
         self._write({"get": "nick", "params": [network]})
-        return self._wait_success_response()
+        return self._wait_success_response()['nick']
 
     def get_config(self, key, group = 'plugin'):
         self._write({"get": "config", "params": [group, key]})
-        return self._wait_success_response()
+        return self._wait_success_response()['value']
 
     def highlight_character(self):
         return self.get_config('highlight', 'core')
@@ -221,46 +221,46 @@ class DaZeus:
             self._write({"do": "property", "params": ['get', property]})
         else:
             self._write({"do": "property", "scope": scope.to_list(), "params": ['get', property]})
-        return self._wait_success_response()
+        return self._wait_success_response()['value']
 
     def set_property(self, property, value, scope = Scope()):
         if scope.is_all():
             self._write({"do": "property", "params": ['set', property, value]})
         else:
             self._write({"do": "property", "scope": scope.to_list(), "params": ['set', property, value]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def unset_property(self, property, scope = Scope()):
         if scope.is_all():
             self._write({"do": "property", "params": ['unset', property]})
         else:
             self._write({"do": "property", "scope": scope.to_list(), "params": ['unset', property]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def property_keys(self, prefix = '', scope = Scope()):
         if scope.is_all():
             self._write({"do": "property", "params": ['keys', prefix]})
         else:
             self._write({"do": "property", "scope": scope.to_list(), "params": ['keys', prefix]})
-        return self._wait_success_response()
+        return self._wait_success_response()['keys']
 
     def has_permission(self, permission, scope = Scope(), allow = True):
         if scope.is_all():
             raise RuntimeError("Cowardly refusing to check permission for universal scope.")
         self._write({"do": "permission", "scope": scope.to_list(), "params": ['has', permission, allow]})
-        return self._wait_success_response()
+        return self._wait_success_response()['has_permission']
 
     def set_permission(self, permission, scope = Scope(), allow = True):
         if scope.is_all():
             raise RuntimeError("Cowardly refusing to set permission for universal scope.")
         self._write({"do": "permission", "scope": scope.to_list(), "params": ['set', permission, allow]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def unset_permission(self, permission, scope = Scope()):
         if scope.is_all():
             raise RuntimeError("Cowardly refusing to remove permission for universal scope.")
         self._write({"do": "permission", "scope": scope.to_list(), "params": ['unset', permission]})
-        return self._wait_success_response()
+        return self._wait_success_response()['success']
 
     def whois(self, network, nick):
         raise NotImplementedError()

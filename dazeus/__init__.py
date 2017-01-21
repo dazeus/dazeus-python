@@ -4,7 +4,7 @@ import socket
 import json
 
 class DaZeus:
-    def __init__(self, addr):
+    def __init__(self, addr, debug = False):
         if ':' not in addr:
             raise AttributeError("Invalid address specified, expected: unix:/path/to/file or tcp:host:port")
 
@@ -35,20 +35,27 @@ class DaZeus:
         else:
             raise AttributeError("Invalid protocol specified, must use unix or tcp")
 
-        self.buffer = b''
+        self._buffer = b''
+        self._listeners = []
+        self._latest_listener_id = 0
+
+        self.debug = debug
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
+        self.close()
+
+    def close(self):
         self.sock.close()
 
-    def check_message(self):
+    def _check_message(self):
         offset = 0
         message_len = 0
 
-        while offset < len(self.buffer):
-            curr = self.buffer[offset]
+        while offset < len(self._buffer):
+            curr = self._buffer[offset]
             if curr >= ord('0') and curr <= ord('9'):
                 message_len *= 10
                 message_len += curr - ord('0')
@@ -58,20 +65,31 @@ class DaZeus:
             else:
                 break
 
-        if message_len > 0 and len(self.buffer) >= offset + message_len:
+        if message_len > 0 and len(self._buffer) >= offset + message_len:
             return (offset, message_len)
         else:
             return (None, None)
 
-    def read(self):
+    def _read(self):
         while True:
-            (offset, message_len) = self.check_message()
+            (offset, message_len) = self._check_message()
             if message_len is not None:
-                return json.loads(self.buffer[offset:offset+message_len].decode('utf-8'))
-            self.buffer += self.sock.recv(1024)
+                strmsg = self._buffer[offset:offset+message_len].decode('utf-8')
+                if self.debug:
+                    print("Received message: {0}".format(strmsg))
 
-    def write(self, msg):
-        bytemsg = json.dumps(msg).encode('utf-8')
+                msg = json.loads(strmsg)
+                self._buffer = self._buffer[offset+message_len:]
+                return msg
+
+            self._buffer += self.sock.recv(1024)
+
+    def _write(self, msg):
+        strmsg = json.dumps(msg)
+        if self.debug:
+            print("Sending message: {0}".format(strmsg))
+
+        bytemsg = strmsg.encode('utf-8')
         bytemsg = str(len(bytemsg)).encode('utf-8') + bytemsg
         totalsent = 0
         while totalsent < len(bytemsg):
@@ -79,3 +97,48 @@ class DaZeus:
             if sent == 0:
                 raise RuntimeError("Socket connection broken")
             totalsent += sent
+
+    def _add_listener(self, listener):
+        listener['id'] = self._latest_listener_id
+        self._listeners.append(listener)
+        self._latest_listener_id += 1
+        return listener['id']
+
+    def subscribe(self, event, handler):
+        return self._add_listener({
+            'event': event,
+            'handler': handler
+        })
+
+    def subscribe_command(self, command, handler):
+        return self._add_listener({
+            'event': 'command',
+            'command': command,
+            'handler': handler
+        })
+
+    def unsubscribe(self, id):
+        self._listeners = [l for l in self._listeners if l['id'] != id]
+
+    def _handle_event(self, event):
+        [l['handler'](event) for l in self._listeners if l['event'] == event['event']]
+
+    def _wait_response(self):
+        while True:
+            msg = self._read()
+            if 'event' in msg:
+                self._handle_event(msg)
+            else:
+                return msg
+
+    def listen(self):
+        while True:
+            msg = self._read()
+            if 'event' in msg:
+                self._handle_event(msg)
+            else:
+                raise RuntimeError("Got response to unsent request")
+
+    def networks(self):
+        self._write({"get":"networks"})
+        return self._wait_response()

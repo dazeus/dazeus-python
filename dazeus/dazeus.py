@@ -244,14 +244,23 @@ class DaZeus:
             self._write({"do": "property", "scope": scope.to_list(), "params": ['keys', prefix]})
         return self._wait_success_response()
 
-    def get_permission(self, permission, scope = Scope(), allow = True):
-        raise NotImplementedError()
+    def has_permission(self, permission, scope = Scope(), allow = True):
+        if scope.is_all():
+            raise RuntimeError("Cowardly refusing to check permission for universal scope.")
+        self._write({"do": "permission", "scope": scope.to_list(), "params": ['has', permission, allow]})
+        return self._wait_success_response()
 
     def set_permission(self, permission, scope = Scope(), allow = True):
-        raise NotImplementedError()
+        if scope.is_all():
+            raise RuntimeError("Cowardly refusing to set permission for universal scope.")
+        self._write({"do": "permission", "scope": scope.to_list(), "params": ['set', permission, allow]})
+        return self._wait_success_response()
 
-    def remove_permission(self, permission, scope = Scope()):
-        raise NotImplementedError()
+    def unset_permission(self, permission, scope = Scope()):
+        if scope.is_all():
+            raise RuntimeError("Cowardly refusing to remove permission for universal scope.")
+        self._write({"do": "permission", "scope": scope.to_list(), "params": ['unset', permission]})
+        return self._wait_success_response()
 
     def whois(self, network, nick):
         raise NotImplementedError()

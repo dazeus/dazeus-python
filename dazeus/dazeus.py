@@ -200,6 +200,8 @@ class DaZeus:
             func = self.notice
         elif type == 'ctcp':
             func = self.ctcp_reply
+        elif type == 'action':
+            func = self.action
         else:
             func = self.message
 

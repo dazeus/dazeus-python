@@ -118,7 +118,7 @@ class DaZeus:
 
     def subscribe_command(self, command, handler, scope = Scope()):
         handle = self._add_listener({
-            'event': 'command',
+            'event': 'COMMAND',
             'command': command,
             'handler': handler
         })
@@ -134,7 +134,12 @@ class DaZeus:
         self._listeners = [l for l in self._listeners if l['id'] != id]
 
     def _handle_event(self, event):
-        [l['handler'](event) for l in self._listeners if l['event'] == event['event']]
+        for l in self._listeners:
+            if l['event'] != event['event'] or \
+               (event['event'] == 'COMMAND' and event['params'][3] != l['command']):
+                continue
+
+            l['handler'](event)
 
     def _wait_response(self):
         while True:

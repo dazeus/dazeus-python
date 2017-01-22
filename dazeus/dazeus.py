@@ -298,11 +298,11 @@ class DaZeus:
         return self._wait_success_response()['success']
 
     def names(self, network, channel):
-        result = {'data': None}
+        result = None
         def listener(event, reply):
+            nonlocal result
             if event['params'][0] == network and event['params'][2] == channel:
-                # Can't assign to result directly because of scoping, so using a dict as a workaround
-                result['data'] = event
+                result = event
                 self.unsubscribe(handle)
 
         handle = self.subscribe('NAMES', listener)
@@ -310,9 +310,9 @@ class DaZeus:
         self._wait_success_response()
 
         # Wait until we have our result
-        while result['data'] is None:
+        while result is None:
             self._wait_event()
-        return result['data']['params'][3:]
+        return result['params'][3:]
 
 
     def nicknames(self, network, channel):

@@ -294,7 +294,8 @@ class DaZeus:
         return self._wait_success_response()['success']
 
     def whois(self, network, nick):
-        raise NotImplementedError()
+        self._write({"do": "whois", "params": [network, nick]})
+        return self._wait_success_response()['success']
 
     def names(self, network, channel):
         result = {'data': None}

@@ -131,7 +131,19 @@ class DaZeus:
         return handle
 
     def unsubscribe(self, id):
+        event = next((l['event'] for l in self._listeners if l['id'] == id), None)
         self._listeners = [l for l in self._listeners if l['id'] != id]
+
+        # Unsubscribe if we were the last subscribed to that event type
+        if event is not None and event != 'COMMAND':
+            remaining = len([l for l in self._listeners if l['event'] == event])
+            if remaining == 0:
+                self._write({
+                    "do": "unsubscribe",
+                    "params": [event]
+                })
+                self._wait_success_response()
+        return True
 
     def _handle_event(self, event):
         for l in self._listeners:

@@ -171,13 +171,16 @@ class DaZeus:
                 raise RuntimeError("An unknown error occurred.")
         return resp
 
+    def _wait_event(self):
+        msg = self._read()
+        if 'event' in msg:
+            self._handle_event(msg)
+        else:
+            raise RuntimeError("Got response to unsent request")
+
     def listen(self):
         while True:
-            msg = self._read()
-            if 'event' in msg:
-                self._handle_event(msg)
-            else:
-                raise RuntimeError("Got response to unsent request")
+            self._wait_event()
 
     def networks(self):
         self._write({"get": "networks"})
@@ -294,7 +297,22 @@ class DaZeus:
         raise NotImplementedError()
 
     def names(self, network, channel):
-        raise NotImplementedError()
+        result = {'data': None}
+        def listener(event, reply):
+            if event['params'][0] == network and event['params'][2] == channel:
+                # Can't assign to result directly because of scoping, so using a dict as a workaround
+                result['data'] = event
+                self.unsubscribe(handle)
+
+        handle = self.subscribe('NAMES', listener)
+        self._write({"do": "names", "params": [network, channel]})
+        self._wait_success_response()
+
+        # Wait until we have our result
+        while result['data'] is None:
+            self._wait_event()
+        return result['data']['params'][3:]
+
 
     def nicknames(self, network, channel):
         raise NotImplementedError()
